@@ -94,8 +94,8 @@ class Dimensioned
     
     attr_accessor :value, :dimensions
     
-    def initialize(val, dim = nil)
-        @value = val
+    def initialize(value, dim = nil)
+        @value = value
         @dimensions = ((dim)? dim : NO_DIMS).clone
     end
     
@@ -120,12 +120,12 @@ class Dimensioned
             if(@dimensions != rhs.dimensions)
                 raise DimensionMismatchException
             end
-            Dimensioned.new(@val + rhs.val, @dimensions)
+            Dimensioned.new(@value + rhs.value, @dimensions)
         else
             if(self.dimensioned?)
                 raise DimensionMismatchException
             end
-            Dimensioned.new(@val + rhs, @dimensions)
+            Dimensioned.new(@value + rhs, @dimensions)
         end
     end
     
@@ -134,38 +134,44 @@ class Dimensioned
             if(@dimensions != rhs.dimensions)
                 raise DimensionMismatchException
             end
-            Dimensioned.new(@val - rhs.val, @dimensions)
+            Dimensioned.new(@value - rhs.value, @dimensions)
         else
             if(self.dimensioned?)
                 raise DimensionMismatchException
             end
-            Dimensioned.new(@val - rhs, @dimensions)
+            Dimensioned.new(@value - rhs, @dimensions)
         end
     end
     
     def *(rhs)
         if(rhs.is_a? Dimensioned)
-            Dimensioned.new(@val*rhs.val, @dimensions + rhs.dimensions)
+            Dimensioned.new(@value*rhs.value, @dimensions + rhs.dimensions)
         else
-            Dimensioned.new(@val*rhs, @dimensions)
+            Dimensioned.new(@value*rhs, @dimensions)
         end
     end
     
     def /(rhs)
         if(rhs.is_a? Dimensioned)
-            Dimensioned.new(@val/rhs.val, @dimensions - rhs.dimensions)
+            Dimensioned.new(@value/rhs.value, @dimensions - rhs.dimensions)
         else
-            Dimensioned.new(@val/rhs, @dimensions)
+            Dimensioned.new(@value/rhs, @dimensions)
         end
     end
     
     def ==(rhs)
-        @val == rhs.val && @dimensions == rhs.dimensions
+        @value == rhs.value && @dimensions == rhs.dimensions
     end
     
-    # def **(rhs)
-    #     
-    # end
+    def **(rhs)
+        if(rhs.is_a? Dimensioned)
+            if(rhs.dimensioned?)
+                raise DimensionMismatchException
+            end
+            rhs = rhs.value
+        end
+        Dimensioned.new(@value**rhs, @dimensions*rhs)
+    end
     
     def coerce(lhs)
         if(lhs.is_a? Dimensioned)
@@ -329,6 +335,6 @@ end # class Dimensioned
 
 Dimensioned.def_si_units()
 
-def dim(val, unit)
-    Dimensioned.new(val, )
+def dim(value, unit)
+    Dimensioned.new(value, )
 end

@@ -12,7 +12,7 @@ class TestDUnit < Test::Unit::TestCase
   end
   
   def test_arithmetic
-      a = 
+      a = Dimensioned.new(1, [0, 0, 0, 0, 0, 0, 0])
       
   end
   
