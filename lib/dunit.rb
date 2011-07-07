@@ -97,6 +97,9 @@ class Dimensioned
     def initialize(value, dim = nil)
         @value = value
         @dimensions = ((dim)? dim : NO_DIMS).clone
+        if(@dimensions.is_a? Array)
+            @dimensions = Vector.elements(@dimensions)
+        end
     end
     
     def dimensioned?(rhs)
@@ -174,11 +177,7 @@ class Dimensioned
     end
     
     def coerce(lhs)
-        if(lhs.is_a? Dimensioned)
-            [lhs, self]
-        else
-            [Dimensioned.new(lhs, NO_DIMS), self]
-        end
+        [Dimensioned.new(lhs, NO_DIMS), self]
     end
     
     def to_s()
@@ -348,7 +347,6 @@ class Dimensioned
 end # class Dimensioned
 
 def dim(value, unit_name)
-#    value*Dimensioned.lookup_unit(unit_name) # FIXME: some problem with coerce
     Dimensioned.lookup_unit(unit_name)*value
 end
 
