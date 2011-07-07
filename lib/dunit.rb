@@ -77,7 +77,7 @@ SI_PREFIX_PWRS = {
     yocto: -24
 }
 
-SI_PREFIX_MULS = SI_PREFIX_PWRS.map {|key, pwr| 10**pwr}
+SI_PREFIX_MULS = SI_PREFIX_PWRS.keys.inject({}) {|muls, pwr| muls[pwr] = 10**SI_PREFIX_PWRS[pwr]; muls}
 
 class Dimensioned
     # Dimension indices
@@ -177,19 +177,26 @@ class Dimensioned
         if(lhs.is_a? Dimensioned)
             [lhs, self]
         else
-            [Dimensioned.new(lhs), self]
+            [Dimensioned.new(lhs, NO_DIMS), self]
         end
     end
     
     def to_s()
         "{#{@value}: #{@dimensions}}"
     end
-
-    def self.lookup_prefixed_unit(unit_name)
-        # If no direct matches work, try a prefix-unit combination
-        # Match start of string against SI_PREFIX_ALIASES.
-        pfxs = SI_PREFIX_ALIAS_NAMES.find_all {|a| unit_name.start_with?(a)}
+    
+    def self.lookup_unit(unit_name)
+        unit_name = unit_name.to_s
+        unit_sym = unit_name.to_sym
+        # Look for match with full name.
+        match = @@units[unit_sym]
+        if(match)
+            return match[:dim]
+        end
         
+        # If no direct matches work, try a prefix-unit combination
+        # Find all multiplier prefixes that unit name begins with
+        pfxs = SI_PREFIX_ALIAS_NAMES.find_all {|a| unit_name.start_with?(a.to_s)}
         # Return nil if no prefix
         if(pfxs.empty?)
             return nil
@@ -197,44 +204,38 @@ class Dimensioned
         
         # If any prefixes match, look for units with remainder as name, trying each matched prefix
         # until a full match is found.
-        matches = {}
+        matches = []
         pfxs.each{|pfx|
             unit_sym = unit_name[pfx.length, unit_name.length].to_sym
-            part_matches = @@units.keys.find_all {|u| u == unit_sym}
-            if(!part_matches.empty?)
-                matches[pfx] = part_matches
+            part_matches = @@units[unit_sym]
+            if(part_matches)
+                matches.push([pfx, part_matches])
             end
         }
-        matches
-    end
-    
-    def self.lookup_unit(unit_name)
-        # Look for match with full name.
-        unit_sym = unit_name.to_sym
-        matches = @@units.keys.find_all {|u| u == unit_sym}
-        if(matches.empty?)
-            matches = lookup_prefixed_unit(unit_name)
-        end
-        # No attempt made to disambiguate units with same name at present
+        
+        # No attempt made to handle units with same name at present
         if(matches.empty?)
             raise "No match found for unit: #{unit_name}"
         end
         if(matches.length > 1)
             raise "Ambiguous unit string: #{unit_name}"
         end
-        matches[0]
+        pfx = matches[0][0]
+        unit = matches[0][1][:dim]
+        mul = SI_PREFIX_MULS[SI_PREFIX_ALIASES[pfx]]
+        unit*mul
     end
     
     # TODO: handle instances where multiple units can share a name
     @@units = {}
-    def self.def_unit(name, dunit)
-        @@units[name.to_sym] = dunit
+    def self.def_unit(name, dunit, family)
+        @@units[name.to_sym] = {dim: dunit, family: family}
     end
     def self.def_unit_alias(name, base)
         @@units[name.to_sym] = @@units[base.to_sym]
     end
     
-    def self.def_si_units()
+    def self.def_units()
         # Define base units.
         # kilogram is the actual base unit for deriving other units, but gram
         # is the unit defined to make handling prefixes easier.
@@ -250,17 +251,17 @@ class Dimensioned
         candela =  Dimensioned.new(1, [0, 0, 0, 0, 0, 1, 0])
         mol =      Dimensioned.new(1, [0, 0, 0, 0, 0, 0, 1])
         
-        def_unit(:meter, meter)
-        def_unit(:gram, gram)
-        def_unit(:second, second)
-        def_unit(:kelvin, kelvin)
-        def_unit(:ampere, ampere)
+        def_unit(:meter, meter, :si)
+        def_unit(:gram, gram, :si)
+        def_unit(:second, second, :si)
+        def_unit(:kelvin, kelvin, :si)
+        def_unit(:ampere, ampere, :si)
         def_unit_alias(:amp, :ampere)
-        def_unit(:candela, candela)
-        def_unit(:mol, mol)
+        def_unit(:candela, candela, :si)
+        def_unit(:mol, mol, :si)
         def_unit_alias(:mole, :mol)
-        def_unit(:radian, radian)
-        def_unit(:steradian, steradian)
+        def_unit(:radian, radian, :si)
+        def_unit(:steradian, steradian, :si)
         
         
         def_unit_alias(:m, :meter)
@@ -283,29 +284,29 @@ class Dimensioned
         coulomb = s*ampere
         volt = joule/coulomb
         
-        def_unit(:hertz, one/s)
-        def_unit(:newton, kg*m/s2)
-        def_unit(:pascal, newton/m2)
-        def_unit(:joule, joule)
-        def_unit(:watt, joule/s)
-        def_unit(:coulomb, coulomb)
-        def_unit(:volt, volt)
-        def_unit(:farad, coulomb/volt)
-        def_unit(:ohm, volt/ampere)
-        def_unit(:siemens, ampere/volt)
+        def_unit(:hertz, one/s, :si)
+        def_unit(:newton, kg*m/s2, :si)
+        def_unit(:pascal, newton/m2, :si)
+        def_unit(:joule, joule, :si)
+        def_unit(:watt, joule/s, :si)
+        def_unit(:coulomb, coulomb, :si)
+        def_unit(:volt, volt, :si)
+        def_unit(:farad, coulomb/volt, :si)
+        def_unit(:ohm, volt/ampere, :si)
+        def_unit(:siemens, ampere/volt, :si)
         
         weber = joule/ampere
-        def_unit(:weber, weber)
-        def_unit(:tesla, weber/m2)
-        def_unit(:henry, weber/ampere)
+        def_unit(:weber, weber, :si)
+        def_unit(:tesla, weber/m2, :si)
+        def_unit(:henry, weber/ampere, :si)
         
-        def_unit(:lumen, candela) # cd/sr
-        def_unit(:lux, candela/m2) # lm/m^2
+        def_unit(:lumen, candela, :si) # cd/sr
+        def_unit(:lux, candela/m2, :si) # lm/m^2
         
-        def_unit(:becquerel, one/s)
-        def_unit(:gray, joule/kg)
-        def_unit(:sievert, joule/kg)
-        def_unit(:katal, mol/s)
+        def_unit(:becquerel, one/s, :si)
+        def_unit(:gray, joule/kg, :si)
+        def_unit(:sievert, joule/kg, :si)
+        def_unit(:katal, mol/s, :si)
         
         
         def_unit_alias(:Hz, :hertz)
@@ -330,15 +331,25 @@ class Dimensioned
         
         
         # TODO: http://en.wikipedia.org/wiki/Non-SI_units_accepted_for_use_with_SI
-        def_unit(:liter, Dimensioned.new(0.001, [3, 0, 0, 0, 0, 0, 0]))
+        def_unit(:liter, Dimensioned.new(0.001, [3, 0, 0, 0, 0, 0, 0]), :si)
+        def_unit_alias(:L, :liter)
         # various...TODO: Move to appropriate function
         # def_unit(:degree, Dimensioned.new(1, [0, 0, 0, 0, 0, 0, 0]))
+        
+        def_unit(:inch, dim(0.0254, :m), :imp)
+        def_unit_alias(:in, :inch)
+        def_unit(:foot, dim(12, :in), :imp)
+        def_unit_alias(:ft, :foot)
+        def_unit(:yard, dim(3, :ft), :imp)
+        def_unit_alias(:yd, :yard)
+        
     end
     
 end # class Dimensioned
 
-Dimensioned.def_si_units()
-
-def dim(value, unit)
-    Dimensioned.new(value, )
+def dim(value, unit_name)
+#    value*Dimensioned.lookup_unit(unit_name) # FIXME: some problem with coerce
+    Dimensioned.lookup_unit(unit_name)*value
 end
+
+Dimensioned.def_units()
