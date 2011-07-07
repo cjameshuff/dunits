@@ -346,8 +346,18 @@ class Dimensioned
     
 end # class Dimensioned
 
-def dim(value, unit_name)
-    Dimensioned.lookup_unit(unit_name)*value
+class Numeric
+    def [](unit_name)
+        Dimensioned.lookup_unit(unit_name)*self
+    end
+end
+
+def dim(value, unit_name = nil)
+    if(unit_name)
+        Dimensioned.lookup_unit(unit_name)*value
+    else
+        Dimensioned.new(value, Dimensioned::NO_DIMS)
+    end
 end
 
 Dimensioned.def_units()
