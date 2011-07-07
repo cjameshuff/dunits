@@ -180,6 +180,10 @@ class Dimensioned
             [Dimensioned.new(lhs), self]
         end
     end
+    
+    def to_s()
+        "{#{@value}: #{@dimensions}}"
+    end
 
     def self.lookup_prefixed_unit(unit_name)
         # If no direct matches work, try a prefix-unit combination
