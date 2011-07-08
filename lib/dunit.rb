@@ -180,6 +180,15 @@ class Dimensioned
         [Dimensioned.new(lhs, NO_DIMS), self]
     end
     
+    def val(unit_name)
+        unit = Dimensioned.lookup_unit(unit_name)
+        if(@dimensions == unit.dimensions)
+            @value/unit.value
+        else
+            raise DimensionMismatchException
+        end
+    end
+    
     def to_s()
         "{#{@value}: #{@dimensions}}"
     end
@@ -332,6 +341,15 @@ class Dimensioned
         # TODO: http://en.wikipedia.org/wiki/Non-SI_units_accepted_for_use_with_SI
         def_unit(:liter, Dimensioned.new(0.001, [3, 0, 0, 0, 0, 0, 0]), :si)
         def_unit_alias(:L, :liter)
+        def_unit(:tonne, dim(1000, :kg), :si)
+        def_unit_alias(:t, :tonne)
+        
+        def_unit(:minute, dim(60, :s), :si)
+        def_unit(:hour, dim(60, :minute), :si)
+        def_unit(:day, dim(24, :hour), :si)
+        def_unit(:week, dim(7, :day), :si)
+        
+        def_unit(:electron_volt, dim(1.60217653e-19, :J), :si)
         # various...TODO: Move to appropriate function
         # def_unit(:degree, Dimensioned.new(1, [0, 0, 0, 0, 0, 0, 0]))
         
@@ -341,6 +359,8 @@ class Dimensioned
         def_unit_alias(:ft, :foot)
         def_unit(:yard, dim(3, :ft), :imp)
         def_unit_alias(:yd, :yard)
+        def_unit(:mile, dim(1760, :yd), :imp)
+        def_unit_alias(:mi, :mile)
         
     end
     
