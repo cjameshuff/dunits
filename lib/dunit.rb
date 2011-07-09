@@ -91,6 +91,7 @@ class Dimensioned
     NUM_DIMS = 7
     
     NO_DIMS = Vector.elements(Array.new(NUM_DIMS, 0))
+    @@consts = {}
     
     attr_accessor :value, :dimensions
     
@@ -272,6 +273,7 @@ class Dimensioned
         def_unit(:steradian, steradian, :si)
         
         
+        def_unit_alias(:s, :second)
         def_unit_alias(:m, :meter)
         def_unit_alias(:g, :gram)
         def_unit_alias(:K, :kelvin)
@@ -283,9 +285,12 @@ class Dimensioned
         # Derived units
         m = meter
         m2 = m*m
+        def_unit(:m2, m2, :si)
+        def_unit(:m3, m*m*m, :si)
         
         s = second
         s2 = s*s
+        def_unit(:s2, s2, :si)
         
         newton = kg*m/s2
         joule = newton*m
@@ -352,13 +357,19 @@ class Dimensioned
         def_unit(:g_TNT, dim(4.184e3, :J), :si)
         def_unit_alias(:g_tnt, :g_TNT)
         
-        def_unit(:minute, dim(60, :s), :si)
-        def_unit(:hour, dim(60, :minute), :si)
-        def_unit(:day, dim(24, :hour), :si)
-        def_unit(:week, dim(7, :day), :si)
+        def_unit(:minute, dim(60.0, :s), :std)
+        def_unit(:hour, dim(60, :minute), :std)
+        def_unit(:day, dim(24, :hour), :std)
+        def_unit(:week, dim(7, :day), :std)
+        def_unit(:year, dim(31556926, :s), :std)
+        def_unit(:month, dim(1.0/12, :year), :std)
         
-        def_unit(:electron_volt, dim(1.60217653e-19, :J), :si)
+        def_unit(:atm, dim(101325, :pascal), :std)
+        def_unit(:bar, dim(100000, :pascal), :std)
+        def_unit(:torr, dim(133.322, :pascal), :std)
+        def_unit(:psi, dim(6895, :pascal), :imp)
         
+        def_unit(:electron_volt, dim(1.60217653e-19, :J), :std)
         def_unit(:degree, dim(Math::PI/180))
         
         def_unit(:inch, dim(0.0254, :m), :imp)
@@ -370,21 +381,50 @@ class Dimensioned
         def_unit(:mile, dim(1760, :yd), :imp)
         def_unit_alias(:mi, :mile)
         
+        
+        @@consts[:c] = dim(299792458, :m)/dim(:s)
+        @@consts[:G] = dim(6.67300e-11, :m3)/dim(:kg)/dim(:s2)
+        @@consts[:gee] = dim(9.80665, :m)/dim(:s2)
+        
+        c = @@consts[:c]
+        def_unit(:light_second, c*dim(1, :s), :std)
+        def_unit(:light_minute, c*dim(1, :minute), :std)
+        def_unit(:light_hour, c*dim(1, :hour), :std)
+        def_unit(:light_week, c*dim(1, :week), :std)
+        def_unit(:light_month, c*dim(1, :month), :std)
+        def_unit(:light_year, c*dim(1, :year), :std)
+        def_unit(:parsec, dim(3.08568025e16, :m), :std)
     end
     
 end # class Dimensioned
 
 class Numeric
-    def [](unit_name)
-        Dimensioned.lookup_unit(unit_name)*self
+    def [](a)
+        if(a.is_a? Symbol)
+            Dimensioned.lookup_unit(a)*self
+        elsif(a.is_a? Dimensioned)
+            a*self
+        else
+            raise "bad dimensioned unit parameter"
+        end
     end
 end
 
-def dim(value, unit_name = nil)
-    if(unit_name)
-        Dimensioned.lookup_unit(unit_name)*value
+# dim(Nmeric, Symbol): numeric quantity in given units
+# dim(Numeric, Dimensioned): numeric quantity in given units
+# dim(Numeric): new undimensioned Dimensioned with given quantity
+# dim(Symbol): lookup unit
+def dim(a, b = nil)
+    if(b && b.is_a?(Symbol))
+        Dimensioned.lookup_unit(b)*a
+    elsif(b && b.is_a?(Dimensioned))
+        b*a
+    elsif(a.is_a? Numeric)
+        Dimensioned.new(a, Dimensioned::NO_DIMS)
+    elsif(a.is_a? Symbol)
+        Dimensioned.lookup_unit(a)
     else
-        Dimensioned.new(value, Dimensioned::NO_DIMS)
+        raise "bad dimensioned unit parameter"
     end
 end
 
