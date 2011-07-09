@@ -341,8 +341,16 @@ class Dimensioned
         # TODO: http://en.wikipedia.org/wiki/Non-SI_units_accepted_for_use_with_SI
         def_unit(:liter, Dimensioned.new(0.001, [3, 0, 0, 0, 0, 0, 0]), :si)
         def_unit_alias(:L, :liter)
+        
         def_unit(:tonne, dim(1000, :kg), :si)
         def_unit_alias(:t, :tonne)
+        
+        def_unit(:micron, dim(1/1000, :m), :si)
+        
+        def_unit(:t_TNT, dim(4.184e9, :J), :si)
+        def_unit_alias(:t_tnt, :t_TNT)
+        def_unit(:g_TNT, dim(4.184e3, :J), :si)
+        def_unit_alias(:g_tnt, :g_TNT)
         
         def_unit(:minute, dim(60, :s), :si)
         def_unit(:hour, dim(60, :minute), :si)
@@ -350,8 +358,8 @@ class Dimensioned
         def_unit(:week, dim(7, :day), :si)
         
         def_unit(:electron_volt, dim(1.60217653e-19, :J), :si)
-        # various...TODO: Move to appropriate function
-        # def_unit(:degree, Dimensioned.new(1, [0, 0, 0, 0, 0, 0, 0]))
+        
+        def_unit(:degree, dim(Math::PI/180))
         
         def_unit(:inch, dim(0.0254, :m), :imp)
         def_unit_alias(:in, :inch)
