@@ -370,7 +370,7 @@ class Dimensioned
         def_unit(:psi, dim(6895, :pascal), :imp)
         
         def_unit(:electron_volt, dim(1.60217653e-19, :J), :std)
-        def_unit(:degree, dim(Math::PI/180))
+        def_unit(:degree, dim(Math::PI/180), :std)
         
         def_unit(:inch, dim(0.0254, :m), :imp)
         def_unit_alias(:in, :inch)
