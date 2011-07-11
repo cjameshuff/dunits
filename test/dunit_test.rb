@@ -1,5 +1,5 @@
 require "test/unit"
-require "dunit"
+require "dunits"
 
 class TestDUnit < Test::Unit::TestCase
     def test_sanity
@@ -43,11 +43,11 @@ class TestDUnit < Test::Unit::TestCase
         
         assert_equal(mol.dimensions, dim(1.0, :mol).dimensions)
         
-        b = Dimensioned.lookup_unit(:meter)
-        puts "meter: #{Dimensioned.lookup_unit(:meter)}"
-        puts "m: #{Dimensioned.lookup_unit(:m)}"
-        puts "kilometer: #{Dimensioned.lookup_unit(:kilometer)}"
-        puts "km: #{Dimensioned.lookup_unit(:km)}"
+        b = Units.lookup_unit(:meter)
+        puts "meter: #{Units.lookup_unit(:meter)}"
+        puts "m: #{Units.lookup_unit(:m)}"
+        puts "kilometer: #{Units.lookup_unit(:kilometer)}"
+        puts "km: #{Units.lookup_unit(:km)}"
         
         puts "kilometer: #{dim(1, :kilometer)}"
     end
