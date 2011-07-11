@@ -4,19 +4,8 @@ require 'matrix'
 class DimensionMismatchException < Exception
 end
 
-# Dimension symbols for those methods that use them:
-# :l, :m, :t, :T, :c, :i, :mol
-
 class Dimensioned
-    # Dimension indices
-    LENGTH = 0
-    MASS = 1
-    TIME = 2
-    TEMPERATURE = 3
-    CURRENT = 4
-    INTENSITY = 5
-    MOLE = 6
-    NUM_DIMS = 7
+    NUM_DIMS = 7 # length, mass, time, temperature, charge current, light intensity, moles
     
     NO_DIMS = Vector.elements(Array.new(NUM_DIMS, 0))
     @@consts = {}
