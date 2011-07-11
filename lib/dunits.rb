@@ -257,6 +257,7 @@ module Units
     def_unit_abbrev(:t, :tonne)
     
     def_unit(:micron, dim(1/1000, :m), :si)
+    def_unit(:angstrom, dim(1.0e-10, :m), :si)
     
     def_unit(:t_TNT, dim(4.184e9, :J), :si)
     def_unit_alias(:t_tnt, :t_TNT)
@@ -276,7 +277,15 @@ module Units
     def_unit(:psi, dim(6895, :pascal), :imp)
     
     def_unit(:electron_volt, dim(1.60217653e-19, :J), :std)
+    def_unit(:elementary_charge, dim(1.60217653e-19, :C), :std)# unit or constant?
+    def_unit(:amu, dim(1.66053886e-27, :kg), :std)
+    def_unit_alias(:dalton, :amu)
+    def_unit_abbrev(:Da, :dalton)
+    
+    
     def_unit(:degree, dim(Math::PI/180), :std)
+    def_unit(:arcminute, dim(Math::PI/10800), :std)
+    def_unit(:arcsecond, dim(Math::PI/648000), :std)
     
     def_unit(:inch, dim(0.0254, :m), :imp)
     def_unit_abbrev(:in, :inch)
@@ -289,10 +298,15 @@ module Units
     
     
     Units.consts[:c] = dim(299792458, :m)/dim(:s)
+    Units.consts[:a0] = dim(0.5291772108e-10, :m) # Bohr radius
+    Units.consts[:hbar] = dim(1.05457168e-34, :J)*dim(:s) # Reduced Planck constant
     Units.consts[:G] = dim(6.67300e-11, :m3)/dim(:kg)/dim(:s2)
     Units.consts[:gee] = dim(9.80665, :m)/dim(:s2)
     
     c = Units.consts[:c]
+    def_unit(:AU, dim(1.49597870691, :m), :std)
+    def_unit_abbrev(:ua, :AU)
+    
     def_unit(:light_second, c*dim(1, :s), :std)
     def_unit(:light_minute, c*dim(1, :minute), :std)
     def_unit(:light_hour, c*dim(1, :hour), :std)
