@@ -2,7 +2,8 @@
 require 'dunits/dimensioned'
 
 module Units
-    @units = {}
+    @units = {} # units by name
+    @unit_names = {} # unit names by dimensions
     @consts = {}
     
     SI_PREFIX_ALIASES = {
@@ -88,9 +89,14 @@ module Units
     
     # TODO: handle instances where multiple units can share a name
     def Units.def_unit(name, dunit, family)
-        @units[name.to_sym] = {dim: dunit, family: family}
+        @units[name.to_sym] = {dim: dunit, family: family, abbrevs: []}
+        @unit_names[dunit.dimensions] = name
     end
     def Units.def_unit_alias(name, base)
+        @units[name.to_sym] = @units[base.to_sym]
+    end
+    def Units.def_unit_abbrev(name, base)
+        @units[base.to_sym][:abbrevs].push(name.to_sym)
         @units[name.to_sym] = @units[base.to_sym]
     end
     
@@ -135,6 +141,16 @@ module Units
         unit*mul
     end
     
+    def Units.to_s_si(value, opts = {})
+        # options: :long
+        # TODO
+        # Use SI base and derived units to express value. Prefer a direct match or
+        # "common combination", but otherwise use a generic representation in base units.
+        # Set prefixes to appropriate size, attempting to keep numeric value in range +-0-999.
+        # If there are multiple dimensions and no common combination matches, adjust
+        # prefixes in this order: meter, kilogram, ampere, ...
+    end
+    
     # Define base units.
     # kilogram is the actual base unit for deriving other units, but gram
     # is the unit defined to make handling prefixes easier.
@@ -163,14 +179,14 @@ module Units
     def_unit(:steradian, steradian, :si)
     
     
-    def_unit_alias(:s, :second)
-    def_unit_alias(:m, :meter)
-    def_unit_alias(:g, :gram)
-    def_unit_alias(:K, :kelvin)
-    def_unit_alias(:A, :ampere)
-    def_unit_alias(:cd, :candela)
-    def_unit_alias(:rad, :radian)
-    def_unit_alias(:sr, :steradian)
+    def_unit_abbrev(:s, :second)
+    def_unit_abbrev(:m, :meter)
+    def_unit_abbrev(:g, :gram)
+    def_unit_abbrev(:K, :kelvin)
+    def_unit_abbrev(:A, :ampere)
+    def_unit_abbrev(:cd, :candela)
+    def_unit_abbrev(:rad, :radian)
+    def_unit_abbrev(:sr, :steradian)
     
     # Derived units
     m = meter
@@ -212,33 +228,33 @@ module Units
     def_unit(:katal, mol/s, :si)
     
     
-    def_unit_alias(:Hz, :hertz)
-    def_unit_alias(:N, :newton)
-    def_unit_alias(:Pa, :pascal)
-    def_unit_alias(:J, :joule)
-    def_unit_alias(:W, :watt)
-    def_unit_alias(:C, :coulomb)
-    def_unit_alias(:V, :volt)
-    def_unit_alias(:F, :farad)
-    # def_unit_alias(:, :ohm)
-    def_unit_alias(:S, :siemens)
-    def_unit_alias(:Wb, :weber)
-    def_unit_alias(:T, :tesla)
-    def_unit_alias(:H, :henry)
-    def_unit_alias(:lm, :lumen)
-    def_unit_alias(:lx, :lux)
-    def_unit_alias(:Bq, :becquerel)
-    def_unit_alias(:Gy, :gray)
-    def_unit_alias(:Sv, :sievert)
-    def_unit_alias(:kat, :katal)
+    def_unit_abbrev(:Hz, :hertz)
+    def_unit_abbrev(:N, :newton)
+    def_unit_abbrev(:Pa, :pascal)
+    def_unit_abbrev(:J, :joule)
+    def_unit_abbrev(:W, :watt)
+    def_unit_abbrev(:C, :coulomb)
+    def_unit_abbrev(:V, :volt)
+    def_unit_abbrev(:F, :farad)
+    # def_unit_abbrev(:, :ohm)
+    def_unit_abbrev(:S, :siemens)
+    def_unit_abbrev(:Wb, :weber)
+    def_unit_abbrev(:T, :tesla)
+    def_unit_abbrev(:H, :henry)
+    def_unit_abbrev(:lm, :lumen)
+    def_unit_abbrev(:lx, :lux)
+    def_unit_abbrev(:Bq, :becquerel)
+    def_unit_abbrev(:Gy, :gray)
+    def_unit_abbrev(:Sv, :sievert)
+    def_unit_abbrev(:kat, :katal)
     
     
     # TODO: http://en.wikipedia.org/wiki/Non-SI_units_accepted_for_use_with_SI
     def_unit(:liter, Dimensioned.new(0.001, [3, 0, 0, 0, 0, 0, 0]), :si)
-    def_unit_alias(:L, :liter)
+    def_unit_abbrev(:L, :liter)
     
     def_unit(:tonne, dim(1000, :kg), :si)
-    def_unit_alias(:t, :tonne)
+    def_unit_abbrev(:t, :tonne)
     
     def_unit(:micron, dim(1/1000, :m), :si)
     
@@ -263,13 +279,13 @@ module Units
     def_unit(:degree, dim(Math::PI/180), :std)
     
     def_unit(:inch, dim(0.0254, :m), :imp)
-    def_unit_alias(:in, :inch)
+    def_unit_abbrev(:in, :inch)
     def_unit(:foot, dim(12, :in), :imp)
-    def_unit_alias(:ft, :foot)
+    def_unit_abbrev(:ft, :foot)
     def_unit(:yard, dim(3, :ft), :imp)
-    def_unit_alias(:yd, :yard)
+    def_unit_abbrev(:yd, :yard)
     def_unit(:mile, dim(1760, :yd), :imp)
-    def_unit_alias(:mi, :mile)
+    def_unit_abbrev(:mi, :mile)
     
     
     Units.consts[:c] = dim(299792458, :m)/dim(:s)
