@@ -64,6 +64,20 @@ class Dimensioned
         end
     end
     
+    def %(rhs)
+        if(rhs.is_a? Dimensioned)
+            if(@dimensions != rhs.dimensions)
+                raise DimensionMismatchException
+            end
+            Dimensioned.new(@value % rhs.value, @dimensions)
+        else
+            if(self.dimensioned?)
+                raise DimensionMismatchException
+            end
+            Dimensioned.new(@value % rhs, @dimensions)
+        end
+    end
+    
     def *(rhs)
         if(rhs.is_a? Dimensioned)
             Dimensioned.new(@value*rhs.value, @dimensions + rhs.dimensions)
@@ -80,6 +94,10 @@ class Dimensioned
         end
     end
     
+    def <=>(rhs)
+        (@value == rhs.value && @dimensions == rhs.dimensions)? 0 : nil
+    end
+    
     def ==(rhs)
         @value == rhs.value && @dimensions == rhs.dimensions
     end
@@ -93,6 +111,28 @@ class Dimensioned
         end
         Dimensioned.new(@value**rhs, @dimensions*rhs)
     end
+    
+    def magnitude()
+        abs
+    end
+    
+    def abs()
+        Dimensioned.new(@value.abs, @dimensions)
+    end
+    
+    def abs2()
+        Dimensioned.new(@value.abs2, @dimensions*@dimensions)
+    end
+    
+    def ceil()
+        Dimensioned.new(@value.ceil, @dimensions)
+    end
+    
+    def floor()
+        Dimensioned.new(@value.floor, @dimensions)
+    end
+    
+    # div, divmod, modulo, fdiv, nonzero?, eql?, integer?, complex stuff, rational stuff
     
     def coerce(lhs)
         [Dimensioned.new(lhs, NO_DIMS), self]
