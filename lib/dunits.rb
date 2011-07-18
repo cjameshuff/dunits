@@ -2,8 +2,8 @@
 require 'dunits/dimensioned'
 
 module Units
-    @units = {} # units by name
-    @unit_names = {} # unit names by dimensions
+    @units_by_name = {} # units by name
+    @units_by_dim = {} # units by dimensions
     @consts = {}
     
     SI_PREFIX_ALIASES = {
@@ -84,27 +84,31 @@ module Units
     end
     
     def Units.units()
-        @units
+        @units_by_name
     end
     
     # TODO: handle instances where multiple units can share a name
     def Units.def_unit(name, dunit, family)
-        @units[name.to_sym] = {dim: dunit, family: family, abbrevs: []}
-        @unit_names[dunit.dimensions] = name
+        unit = {dim: dunit, family: family, abbrevs: []}
+        @units_by_name[name.to_sym] = unit
+        if(!@units_by_dim[dunit.dimensions])
+            @units_by_dim[dunit.dimensions] = []
+        end
+        @units_by_dim[dunit.dimensions].push(unit)
     end
     def Units.def_unit_alias(name, base)
-        @units[name.to_sym] = @units[base.to_sym]
+        @units_by_name[name.to_sym] = @units_by_name[base.to_sym]
     end
     def Units.def_unit_abbrev(name, base)
-        @units[base.to_sym][:abbrevs].push(name.to_sym)
-        @units[name.to_sym] = @units[base.to_sym]
+        @units_by_name[base.to_sym][:abbrevs].push(name.to_sym)
+        @units_by_name[name.to_sym] = @units_by_name[base.to_sym]
     end
     
     def Units.lookup_unit(unit_name)
         unit_name = unit_name.to_s
         unit_sym = unit_name.to_sym
         # Look for match with full name.
-        match = @units[unit_sym]
+        match = @units_by_name[unit_sym]
         if(match)
             return match[:dim]
         end
@@ -122,7 +126,7 @@ module Units
         matches = []
         pfxs.each{|pfx|
             unit_sym = unit_name[pfx.length, unit_name.length].to_sym
-            part_matches = @units[unit_sym]
+            part_matches = @units_by_name[unit_sym]
             if(part_matches)
                 matches.push([pfx, part_matches])
             end
@@ -149,6 +153,9 @@ module Units
         # Set prefixes to appropriate size, attempting to keep numeric value in range +-0-999.
         # If there are multiple dimensions and no common combination matches, adjust
         # prefixes in this order: meter, kilogram, ampere, ...
+        
+        @units_by_dim.find_all{|unit|}
+        
     end
     
     # Define base units.
